@@ -27,7 +27,7 @@ func New(mode ParsingMode) *KuduParser {
 }
 
 // Parse - parse the input of the kudu language into an Expression.
-// Returns (input is legal, input is a repl break, the parsed expression)
+// Returns (input is legal, input is a repl break, the parsed expressions)
 func (p *KuduParser) Parse(input string) (bool, bool, []Expression) {
 	lex := lexer.New(input)
 	p.parser = NewParser(lex, p.Mode)
