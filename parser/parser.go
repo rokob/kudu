@@ -34,15 +34,17 @@ type Parser struct {
 	stream         TokenStream
 	prefixParslets map[token.Type]PrefixParslet
 	infixParslets  map[token.Type]InfixParslet
+	mode           ParsingMode
 }
 
 // NewParser - returns a properly initialized parser reference
-func NewParser(tokenStream TokenStream) *Parser {
+func NewParser(tokenStream TokenStream, mode ParsingMode) *Parser {
 	p := Parser{
 		read:           make([]token.Token, 0),
 		stream:         tokenStream,
 		prefixParslets: make(map[token.Type]PrefixParslet),
 		infixParslets:  make(map[token.Type]InfixParslet),
+		mode:           mode,
 	}
 	return &p
 }
@@ -54,13 +56,21 @@ func (p *Parser) parseExpression(precedenceParam ...Precedence) Expression {
 	} else if len(precedenceParam) == 1 {
 		precedence = precedenceParam[0]
 	} else {
-		panic(fmt.Sprintf("Too many parameters to parseExpression: %v", precedenceParam))
+		if p.mode == ReplMode {
+			return IllegalExpression{}
+		} else if p.mode == CompilerMode {
+			panic(fmt.Sprintf("Too many parameters to parseExpression: %v", precedenceParam))
+		}
 	}
 
 	token := p.consume()
 	prefix, ok := p.prefixParslets[token.Type]
 	if !ok {
-		panic(fmt.Sprintf("Bad token: %s", token))
+		if p.mode == ReplMode {
+			return IllegalExpression{}
+		} else if p.mode == CompilerMode {
+			panic(fmt.Sprintf("Bad token: %s", token))
+		}
 	}
 	left := prefix.parse(p, token)
 
@@ -99,9 +109,13 @@ func (p *Parser) consume() token.Token {
 }
 
 func (p *Parser) consumeExpected(expected token.Type) token.Token {
-	token := p.lookAhead(0)
-	if token.Type != expected {
-		panic(fmt.Sprintf("Expected: %s, got: %s", expected, token))
+	nextToken := p.lookAhead(0)
+	if nextToken.Type != expected {
+		if p.mode == ReplMode {
+			return token.Token{Type: token.ILLEGAL}
+		} else if p.mode == CompilerMode {
+			panic(fmt.Sprintf("Expected: %s, got: %s", expected, nextToken))
+		}
 	}
 	return p.consume()
 }

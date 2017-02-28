@@ -21,6 +21,13 @@ func (e PrefixExpression) String() string {
 
 func (p *PrefixOperatorParslet) parse(parser *Parser, token token.Token) Expression {
 	right := parser.parseExpression()
+	if _, ok := right.(IllegalExpression); ok {
+		if parser.mode == ReplMode {
+			return IllegalExpression{}
+		} else if parser.mode == CompilerMode {
+			panic("The right side of a prefix expression is illegal")
+		}
+	}
 	return PrefixExpression{Type: token.Type, Right: right}
 }
 

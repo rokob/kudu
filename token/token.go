@@ -84,4 +84,7 @@ const (
 	ELSE = "ELSE"
 	// RETURN - keyword for returning from a function
 	RETURN = "RETURN"
+
+	// DOLLAR - $ symbol used by the interpreter
+	DOLLAR = "$"
 )

@@ -98,6 +98,7 @@ x + !y - ten;
 let result = add(five, ten);
 let what? = 37
 a(b,c)
+$
 `
 	tests := []nextTokenTest{
 		{token.LET, "let"},
@@ -149,6 +150,7 @@ a(b,c)
 		{token.COMMA, ","},
 		{token.IDENT, "c"},
 		{token.RPAREN, ")"},
+		{token.DOLLAR, "$"},
 		{token.EOF, ""},
 	}
 	nextTokenHelper(input, tests, t)

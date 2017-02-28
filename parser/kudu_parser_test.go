@@ -90,8 +90,10 @@ func TestKuduParser_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := New()
-			if got := p.Parse(tt.input).String(); got != tt.want {
+			p := New(CompilerMode)
+			_, _, gotExpr := p.Parse(tt.input)
+			got := gotExpr.String()
+			if got != tt.want {
 				t.Errorf("Parser.parseExpression() = %v, want %v", got, tt.want)
 			}
 		})
@@ -108,7 +110,7 @@ func TestKuduParser_ParsePanics(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := New()
+			p := New(CompilerMode)
 			defer func() {
 				if r := recover(); r == nil {
 					t.Errorf("Expected KuduParser.parse with input %v to panic", tt.input)

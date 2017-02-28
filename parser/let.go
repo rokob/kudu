@@ -21,8 +21,28 @@ func (e LetExpression) String() string {
 
 func (p *LetParslet) parse(parser *Parser, inputToken token.Token) Expression {
 	identifierToken := parser.consumeExpected(token.IDENT)
+	if identifierToken.Type == token.ILLEGAL {
+		if parser.mode == ReplMode {
+			return IllegalExpression{}
+		} else if parser.mode == CompilerMode {
+			panic("Expected to see an identifier on the left-hand-side of a let statment, got something else")
+		}
+	}
 	identifier := (&IdentifierParslet{}).parse(parser, identifierToken)
-	parser.consumeExpected(token.ASSIGN)
+	if t := parser.consumeExpected(token.ASSIGN); t.Type == token.ILLEGAL {
+		if parser.mode == ReplMode {
+			return IllegalExpression{}
+		} else if parser.mode == CompilerMode {
+			panic("Expected to see an = in a let expression, but saw something else")
+		}
+	}
 	binding := parser.parseExpression()
+	if _, ok := binding.(IllegalExpression); ok {
+		if parser.mode == ReplMode {
+			return IllegalExpression{}
+		} else if parser.mode == CompilerMode {
+			panic("The binding expression in a let statement is illegal")
+		}
+	}
 	return LetExpression{Identifier: identifier, Binding: binding}
 }

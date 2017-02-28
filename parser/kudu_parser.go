@@ -5,22 +5,40 @@ import (
 	"github.com/rokob/kudu/token"
 )
 
+// ParsingMode is a type which represents the mode this parser is configured to use
+type ParsingMode int
+
+const (
+	// ReplMode is for the repl which doesn't panic on errors and can handle partial input
+	ReplMode ParsingMode = iota
+	// CompilerMode expects a fully formed program to be passed to Parse
+	CompilerMode
+)
+
 // KuduParser is the parser for the kudu language
 type KuduParser struct {
+	Mode   ParsingMode
 	parser *Parser
 }
 
 // New - returns an initalized parser for the kudu language
-func New() *KuduParser {
-	return &KuduParser{}
+func New(mode ParsingMode) *KuduParser {
+	return &KuduParser{Mode: mode}
 }
 
-// Parse - parse the input of the kudu language into an Expression
-func (p *KuduParser) Parse(input string) Expression {
+// Parse - parse the input of the kudu language into an Expression.
+// Returns (input is legal, input is a repl break, the parsed expression)
+func (p *KuduParser) Parse(input string) (bool, bool, Expression) {
 	lex := lexer.New(input)
-	p.parser = NewParser(lex)
+	p.parser = NewParser(lex, p.Mode)
 	p.configureLanguage()
-	return p.parser.parseExpression()
+	parsedExpression := p.parser.parseExpression()
+	illegalExp, isIllegal := parsedExpression.(IllegalExpression)
+	isBreak := false
+	if isIllegal {
+		isBreak = illegalExp.IsBreak
+	}
+	return !isIllegal, isBreak, parsedExpression
 }
 
 func (p *KuduParser) configureLanguage() {
@@ -89,6 +107,10 @@ func (p *KuduParser) configureLanguage() {
 	// a()
 	// a(b, c d)
 	p.parser.registerInfix(token.LPAREN, &FunctionCallParslet{})
+
+	if p.Mode == ReplMode {
+		p.parser.registerPrefix(token.DOLLAR, &ReplBreakParslet{})
+	}
 }
 
 func prefix(parser *Parser, tokenType token.Type) {

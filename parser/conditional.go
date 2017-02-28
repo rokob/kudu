@@ -32,22 +32,65 @@ func (p *ConditionalParslet) parse(parser *Parser, inputToken token.Token) Expre
 		panic(fmt.Sprintf("Missing condition in if statement: %s", inputToken))
 	}
 	ifCondition := parser.parseExpression()
-	parser.match(token.LBRACE)
+	if _, ok := ifCondition.(IllegalExpression); ok {
+		if parser.mode == ReplMode {
+			return IllegalExpression{}
+		} else if parser.mode == CompilerMode {
+			panic("The condition for an if statement is illegal")
+		}
+	}
+	lbraceToken := parser.consumeExpected(token.LBRACE)
+	if lbraceToken.Type == token.ILLEGAL {
+		if parser.mode == ReplMode {
+			return IllegalExpression{}
+		} else if parser.mode == CompilerMode {
+			panic("After an if statement we expeceted a { but got something else")
+		}
+
+	}
 	for !parser.match(token.RBRACE) {
-		block = append(block, parser.parseExpression())
+		b := parser.parseExpression()
+		if _, ok := b.(IllegalExpression); ok {
+			if parser.mode == ReplMode {
+				return IllegalExpression{}
+			} else if parser.mode == CompilerMode {
+				panic("An expression inside an if block is illegal")
+			}
+		}
+		block = append(block, b)
 	}
 	var elseCondition *ConditionalExpression
 	if parser.match(token.ELSE) {
 		if parser.match(token.LBRACE) {
 			elseBlock := make([]Expression, 0)
 			for !parser.match(token.RBRACE) {
-				elseBlock = append(elseBlock, parser.parseExpression())
+				e := parser.parseExpression()
+				if _, ok := e.(IllegalExpression); ok {
+					if parser.mode == ReplMode {
+						return IllegalExpression{}
+					} else if parser.mode == CompilerMode {
+						panic("An expression inside an else block is illegal")
+					}
+				}
+				elseBlock = append(elseBlock, e)
 			}
 			elseCondition = &ConditionalExpression{Block: elseBlock}
 		} else {
 			ifToken := parser.consumeExpected(token.IF)
+			if ifToken.Type == token.ILLEGAL {
+				if parser.mode == ReplMode {
+					return IllegalExpression{}
+				} else if parser.mode == CompilerMode {
+					panic("Expected to consume an IF token, but instead got something else")
+				}
+			}
 			if elseConditionLiteral, ok := (&ConditionalParslet{}).parse(parser, ifToken).(ConditionalExpression); !ok {
-				panic("ConditionalParslet returned a non-conditional expression")
+				if parser.mode == ReplMode {
+					return IllegalExpression{}
+				} else if parser.mode == CompilerMode {
+					panic("ConditionalParslet returned a non-conditional expression")
+				}
+
 			} else {
 				elseCondition = &elseConditionLiteral
 			}

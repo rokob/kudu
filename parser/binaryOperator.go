@@ -32,13 +32,28 @@ func (p *BinaryOperatorParselet) parse(parser *Parser, left Expression, token to
 	}
 	if p.leftCondition != nil {
 		if ok, msg := p.leftCondition(left); !ok {
-			panic(msg)
+			if parser.mode == ReplMode {
+				return IllegalExpression{}
+			} else if parser.mode == CompilerMode {
+				panic(msg)
+			}
 		}
 	}
 	right := parser.parseExpression(precedence)
+	if _, ok := right.(IllegalExpression); ok {
+		if parser.mode == ReplMode {
+			return IllegalExpression{}
+		} else if parser.mode == CompilerMode {
+			panic(fmt.Sprintf("The condition on the right side of the binary operator %s is illegal", token.Literal))
+		}
+	}
 	if p.rightCondition != nil {
 		if ok, msg := p.rightCondition(right); !ok {
-			panic(msg)
+			if parser.mode == ReplMode {
+				return IllegalExpression{}
+			} else if parser.mode == CompilerMode {
+				panic(msg)
+			}
 		}
 	}
 	return OperatorExpression{Left: left, Type: token.Type, Right: right}

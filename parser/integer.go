@@ -22,7 +22,11 @@ func (e IntegerExpression) String() string {
 func (p *IntegerParslet) parse(parser *Parser, token token.Token) Expression {
 	i, err := strconv.ParseInt(token.Literal, 0, 64)
 	if err != nil {
-		panic(fmt.Sprintf("Bad Integer value: %s", token))
+		if parser.mode == ReplMode {
+			return IllegalExpression{}
+		} else if parser.mode == CompilerMode {
+			panic(fmt.Sprintf("Bad Integer value: %s", token))
+		}
 	}
 	return IntegerExpression{Integer: i}
 }

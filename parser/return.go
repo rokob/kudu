@@ -20,6 +20,13 @@ func (e ReturnExpression) String() string {
 
 func (p *ReturnParslet) parse(parser *Parser, inputToken token.Token) Expression {
 	expression := parser.parseExpression()
+	if _, ok := expression.(IllegalExpression); ok {
+		if parser.mode == ReplMode {
+			return IllegalExpression{}
+		} else if parser.mode == CompilerMode {
+			panic("An expression being returnd is illegal")
+		}
+	}
 	return ReturnExpression{Value: expression}
 }
 
