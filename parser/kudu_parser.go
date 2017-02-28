@@ -28,17 +28,28 @@ func New(mode ParsingMode) *KuduParser {
 
 // Parse - parse the input of the kudu language into an Expression.
 // Returns (input is legal, input is a repl break, the parsed expression)
-func (p *KuduParser) Parse(input string) (bool, bool, Expression) {
+func (p *KuduParser) Parse(input string) (bool, bool, []Expression) {
 	lex := lexer.New(input)
 	p.parser = NewParser(lex, p.Mode)
 	p.configureLanguage()
-	parsedExpression := p.parser.parseExpression()
-	illegalExp, isIllegal := parsedExpression.(IllegalExpression)
-	isBreak := false
-	if isIllegal {
-		isBreak = illegalExp.IsBreak
+	parsedExpressions := make([]Expression, 0)
+	for {
+		parsedExpression := p.parser.parseExpression()
+		parsedExpressions = append(parsedExpressions, parsedExpression)
+
+		illegalExp, isIllegal := parsedExpression.(IllegalExpression)
+		isBreak := false
+		if isIllegal {
+			isBreak = illegalExp.IsBreak
+			return !isIllegal, isBreak, parsedExpressions
+		}
+		if !p.parser.match(token.SEMICOLON) {
+			return true, false, parsedExpressions
+		}
+		if p.parser.match(token.EOF) {
+			return !isIllegal, isBreak, parsedExpressions
+		}
 	}
-	return !isIllegal, isBreak, parsedExpression
 }
 
 func (p *KuduParser) configureLanguage() {

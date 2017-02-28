@@ -2,6 +2,7 @@ package repl
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -16,6 +17,9 @@ func Run() {
 	var currentInput string
 	for scanner.Scan() {
 		lastInput := scanner.Text()
+		if lastInput == ".bye" {
+			break
+		}
 		currentInput += lastInput
 		ok, isBreak, output := handleLineOfText(currentInput)
 		if !ok && !isBreak {
@@ -27,31 +31,31 @@ func Run() {
 				currentInput += "\n"
 				showContinuationLine()
 			}
+			continue
+		}
+		if ok {
+			showOutput(output)
+			currentInput = ""
+			showInputLine()
+		} else if isBreak {
+			currentInput = ""
+			showInputLine()
 		} else {
-			if ok {
-				showOutput(output)
-				currentInput = ""
-				showInputLine()
-			} else if isBreak {
-				currentInput = ""
-				showInputLine()
-			} else {
-				currentInput += "\n"
-				showContinuationLine()
-			}
+			currentInput += "\n"
+			showContinuationLine()
 		}
 	}
 	showExit()
 }
 
 func showTagline() {
-	fmt.Println("Kudu v0.1 - The Kuduest Language")
-	fmt.Println("If you screw up, type $ to end this expression")
-	fmt.Println("^D to quit")
+	fmt.Println("🦌🦌🦌 Kudu v0.1 - The Kuduest Language 🦌🦌🦌")
+	fmt.Println("Use $ to exit an expression")
+	fmt.Println("^D or .bye to quit")
 }
 
 func showExit() {
-	fmt.Println("\n>>> Kudu says goodbye")
+	fmt.Println("\n🦌🦌🦌 Kudu says goodbye")
 }
 
 func showInputLine() {
@@ -68,6 +72,19 @@ func showOutput(output string) {
 
 func handleLineOfText(line string) (bool, bool, string) {
 	p := parser.New(parser.ReplMode)
-	ok, isBreak, e := p.Parse(line)
-	return ok, isBreak, e.String()
+	ok, isBreak, es := p.Parse(line)
+	if ok {
+		var b []byte
+		var err error
+		if len(es) == 1 {
+			b, err = json.MarshalIndent(es[0], "", "  ")
+		} else {
+			b, err = json.MarshalIndent(es, "", "  ")
+		}
+		if err != nil {
+			return false, false, err.Error()
+		}
+		return ok, isBreak, string(b)
+	}
+	return ok, isBreak, ""
 }

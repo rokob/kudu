@@ -9,10 +9,13 @@ import (
 // FunctionDefinitionParslet - the parslet for handling function definitions
 type FunctionDefinitionParslet struct{}
 
+const functionDefinitionExpressionType string = "function definition"
+
 // FunctionDefinitionExpression - an expression representing a function definition
 type FunctionDefinitionExpression struct {
-	Arguments []Expression
-	Block     []Expression
+	Type      string       `json:"type"`
+	Arguments []Expression `json:"args"`
+	Block     []Expression `json:"body"`
 }
 
 func (e FunctionDefinitionExpression) String() string {
@@ -78,5 +81,5 @@ func (p *FunctionDefinitionParslet) parse(parser *Parser, inputToken token.Token
 		}
 		block = append(block, b)
 	}
-	return FunctionDefinitionExpression{Arguments: arguments, Block: block}
+	return FunctionDefinitionExpression{Type: functionDefinitionExpressionType, Arguments: arguments, Block: block}
 }

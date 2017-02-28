@@ -9,10 +9,13 @@ import (
 // FunctionCallParslet - the parslet for handling function calls
 type FunctionCallParslet struct{}
 
+const functionCallExpressionType string = "function call"
+
 // FunctionCallExpression - an expression representing a function call
 type FunctionCallExpression struct {
-	Function  Expression
-	Arguments []Expression
+	Type      string       `json:"type"`
+	Function  Expression   `json:"name"`
+	Arguments []Expression `json:"args"`
 }
 
 func (e FunctionCallExpression) String() string {
@@ -51,7 +54,7 @@ func (p *FunctionCallParslet) parse(parser *Parser, left Expression, inputToken 
 		}
 	}
 
-	return FunctionCallExpression{Function: left, Arguments: arguments}
+	return FunctionCallExpression{Type: functionCallExpressionType, Function: left, Arguments: arguments}
 }
 
 func (p *FunctionCallParslet) getPrecedence() Precedence {

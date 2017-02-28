@@ -9,10 +9,13 @@ import (
 // LetParslet - the parslet for handling variable bindings
 type LetParslet struct{}
 
+const letExpressionType string = "variable declaration"
+
 // LetExpression - an expression representing a let binding
 type LetExpression struct {
-	Identifier Expression
-	Binding    Expression
+	Type       string     `json:"type"`
+	Identifier Expression `json:"identifier"`
+	Binding    Expression `json:"binding"`
 }
 
 func (e LetExpression) String() string {
@@ -44,5 +47,5 @@ func (p *LetParslet) parse(parser *Parser, inputToken token.Token) Expression {
 			panic("The binding expression in a let statement is illegal")
 		}
 	}
-	return LetExpression{Identifier: identifier, Binding: binding}
+	return LetExpression{Type: letExpressionType, Identifier: identifier, Binding: binding}
 }

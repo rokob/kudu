@@ -92,7 +92,7 @@ func TestKuduParser_Parse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := New(CompilerMode)
 			_, _, gotExpr := p.Parse(tt.input)
-			got := gotExpr.String()
+			got := gotExpr[0].String()
 			if got != tt.want {
 				t.Errorf("Parser.parseExpression() = %v, want %v", got, tt.want)
 			}

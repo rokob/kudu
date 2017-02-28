@@ -14,15 +14,19 @@ type BinaryOperatorParselet struct {
 	rightCondition func(Expression) (bool, string)
 }
 
+type operatorExpressionArguments struct {
+	Left  Expression `json:"left"`
+	Right Expression `json:"right"`
+}
+
 // OperatorExpression - an expression for a binary operator
 type OperatorExpression struct {
-	Left  Expression
-	Type  token.Type
-	Right Expression
+	Type      token.Type                  `json:"binary operator"`
+	Arguments operatorExpressionArguments `json:"args"`
 }
 
 func (e OperatorExpression) String() string {
-	return fmt.Sprintf("BINARY(%s, %s, %s)", e.Type, e.Left.String(), e.Right.String())
+	return fmt.Sprintf("BINARY(%s, %s, %s)", e.Type, e.Arguments.Left.String(), e.Arguments.Right.String())
 }
 
 func (p *BinaryOperatorParselet) parse(parser *Parser, left Expression, token token.Token) Expression {
@@ -56,7 +60,13 @@ func (p *BinaryOperatorParselet) parse(parser *Parser, left Expression, token to
 			}
 		}
 	}
-	return OperatorExpression{Left: left, Type: token.Type, Right: right}
+	return OperatorExpression{
+		Type: token.Type,
+		Arguments: operatorExpressionArguments{
+			Left:  left,
+			Right: right,
+		},
+	}
 }
 
 func (p *BinaryOperatorParselet) getPrecedence() Precedence {

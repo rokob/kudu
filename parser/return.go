@@ -11,7 +11,7 @@ type ReturnParslet struct{}
 
 // ReturnExpression - an expression representing a return from a function
 type ReturnExpression struct {
-	Value Expression
+	Value Expression `json:"return"`
 }
 
 func (e ReturnExpression) String() string {

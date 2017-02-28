@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -17,6 +18,11 @@ type IntegerExpression struct {
 
 func (e IntegerExpression) String() string {
 	return fmt.Sprintf("INT(%d)", e.Integer)
+}
+
+// MarshalJSON for IntegerExpression should just be the integer literal
+func (e IntegerExpression) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.Integer)
 }
 
 func (p *IntegerParslet) parse(parser *Parser, token token.Token) Expression {

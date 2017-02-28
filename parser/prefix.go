@@ -11,8 +11,8 @@ type PrefixOperatorParslet struct{}
 
 // PrefixExpression - an expression representing a prefix operator
 type PrefixExpression struct {
-	Type  token.Type
-	Right Expression
+	Type  token.Type `json:"prefix operator"`
+	Right Expression `json:"operand"`
 }
 
 func (e PrefixExpression) String() string {
