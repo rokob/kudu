@@ -1,4 +1,4 @@
-package parser
+package ast
 
 // IllegalExpression - an expression representing illegal input
 type IllegalExpression struct {

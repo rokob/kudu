@@ -1,34 +1,23 @@
 package parser
 
 import (
-	"fmt"
-
+	"github.com/rokob/kudu/ast"
 	"github.com/rokob/kudu/token"
 )
 
 // PrefixOperatorParslet - the parselt for handling prefix operators
 type PrefixOperatorParslet struct{}
 
-// PrefixExpression - an expression representing a prefix operator
-type PrefixExpression struct {
-	Type  token.Type `json:"prefix operator"`
-	Right Expression `json:"operand"`
-}
-
-func (e PrefixExpression) String() string {
-	return fmt.Sprintf("PREFIX(%s, %s)", e.Type, e.Right.String())
-}
-
-func (p *PrefixOperatorParslet) parse(parser *Parser, token token.Token) Expression {
+func (p *PrefixOperatorParslet) parse(parser *Parser, token token.Token) ast.Expression {
 	right := parser.parseExpression()
-	if _, ok := right.(IllegalExpression); ok {
+	if _, ok := right.(ast.IllegalExpression); ok {
 		if parser.mode == ReplMode {
-			return IllegalExpression{}
+			return ast.IllegalExpression{}
 		} else if parser.mode == CompilerMode {
 			panic("The right side of a prefix expression is illegal")
 		}
 	}
-	return PrefixExpression{Type: token.Type, Right: right}
+	return ast.PrefixExpression{Type: token.Type, Right: right}
 }
 
 func (p *PrefixOperatorParslet) String() string {

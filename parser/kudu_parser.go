@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"github.com/rokob/kudu/ast"
 	"github.com/rokob/kudu/lexer"
 	"github.com/rokob/kudu/token"
 )
@@ -28,16 +29,16 @@ func New(mode ParsingMode) *KuduParser {
 
 // Parse - parse the input of the kudu language into an Expression.
 // Returns (input is legal, input is a repl break, the parsed expressions)
-func (p *KuduParser) Parse(input string) (bool, bool, []Expression) {
+func (p *KuduParser) Parse(input string) (bool, bool, []ast.Expression) {
 	lex := lexer.New(input)
 	p.parser = NewParser(lex, p.Mode)
 	p.configureLanguage()
-	parsedExpressions := make([]Expression, 0)
+	parsedExpressions := make([]ast.Expression, 0)
 	for {
 		parsedExpression := p.parser.parseExpression()
 		parsedExpressions = append(parsedExpressions, parsedExpression)
 
-		illegalExp, isIllegal := parsedExpression.(IllegalExpression)
+		illegalExp, isIllegal := parsedExpression.(ast.IllegalExpression)
 		isBreak := false
 		if isIllegal {
 			isBreak = illegalExp.IsBreak
@@ -107,8 +108,8 @@ func (p *KuduParser) configureLanguage() {
 	p.parser.registerInfix(token.ASSIGN, &BinaryOperatorParselet{
 		precedence: ASSIGNMENT,
 		isRight:    true,
-		leftCondition: func(e Expression) (bool, string) {
-			_, ok := e.(IdentifierExpression)
+		leftCondition: func(e ast.Expression) (bool, string) {
+			_, ok := e.(ast.IdentifierExpression)
 			return ok, "Left-hand-side of assignment must be an identifier"
 		}})
 

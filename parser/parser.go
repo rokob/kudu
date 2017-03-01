@@ -2,8 +2,8 @@ package parser
 
 import (
 	"fmt"
-	"strings"
 
+	"github.com/rokob/kudu/ast"
 	"github.com/rokob/kudu/token"
 )
 
@@ -12,19 +12,14 @@ type TokenStream interface {
 	NextToken() token.Token
 }
 
-// Expression - generic expression interface
-type Expression interface {
-	String() string
-}
-
 // PrefixParslet - parses a prefix expression
 type PrefixParslet interface {
-	parse(parser *Parser, token token.Token) Expression
+	parse(parser *Parser, token token.Token) ast.Expression
 }
 
 // InfixParslet - parses an infix expression
 type InfixParslet interface {
-	parse(parser *Parser, left Expression, token token.Token) Expression
+	parse(parser *Parser, left ast.Expression, token token.Token) ast.Expression
 	getPrecedence() Precedence
 }
 
@@ -49,7 +44,7 @@ func NewParser(tokenStream TokenStream, mode ParsingMode) *Parser {
 	return &p
 }
 
-func (p *Parser) parseExpression(precedenceParam ...Precedence) Expression {
+func (p *Parser) parseExpression(precedenceParam ...Precedence) ast.Expression {
 	var precedence Precedence
 	if len(precedenceParam) == 0 {
 		precedence = LOWEST
@@ -57,7 +52,7 @@ func (p *Parser) parseExpression(precedenceParam ...Precedence) Expression {
 		precedence = precedenceParam[0]
 	} else {
 		if p.mode == ReplMode {
-			return IllegalExpression{}
+			return ast.IllegalExpression{}
 		} else if p.mode == CompilerMode {
 			panic(fmt.Sprintf("Too many parameters to parseExpression: %v", precedenceParam))
 		}
@@ -67,7 +62,7 @@ func (p *Parser) parseExpression(precedenceParam ...Precedence) Expression {
 	prefix, ok := p.prefixParslets[token.Type]
 	if !ok {
 		if p.mode == ReplMode {
-			return IllegalExpression{}
+			return ast.IllegalExpression{}
 		} else if p.mode == CompilerMode {
 			panic(fmt.Sprintf("Bad token: %s", token))
 		}
@@ -135,12 +130,4 @@ func (p *Parser) getPrecedence() Precedence {
 		return parslet.getPrecedence()
 	}
 	return LOWEST
-}
-
-func expressionListJoin(list []Expression, sep string) string {
-	expressions := make([]string, len(list))
-	for i, e := range list {
-		expressions[i] = e.String()
-	}
-	return strings.Join(expressions, sep)
 }

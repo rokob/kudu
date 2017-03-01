@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 
+	"github.com/rokob/kudu/ast"
 	"github.com/rokob/kudu/token"
 )
 
@@ -10,26 +11,11 @@ import (
 type BinaryOperatorParselet struct {
 	precedence     Precedence
 	isRight        bool
-	leftCondition  func(Expression) (bool, string)
-	rightCondition func(Expression) (bool, string)
+	leftCondition  func(ast.Expression) (bool, string)
+	rightCondition func(ast.Expression) (bool, string)
 }
 
-type operatorExpressionArguments struct {
-	Left  Expression `json:"left"`
-	Right Expression `json:"right"`
-}
-
-// OperatorExpression - an expression for a binary operator
-type OperatorExpression struct {
-	Type      token.Type                  `json:"binary operator"`
-	Arguments operatorExpressionArguments `json:"args"`
-}
-
-func (e OperatorExpression) String() string {
-	return fmt.Sprintf("BINARY(%s, %s, %s)", e.Type, e.Arguments.Left.String(), e.Arguments.Right.String())
-}
-
-func (p *BinaryOperatorParselet) parse(parser *Parser, left Expression, token token.Token) Expression {
+func (p *BinaryOperatorParselet) parse(parser *Parser, left ast.Expression, token token.Token) ast.Expression {
 	precedence := p.precedence
 	if p.isRight {
 		precedence--
@@ -37,16 +23,16 @@ func (p *BinaryOperatorParselet) parse(parser *Parser, left Expression, token to
 	if p.leftCondition != nil {
 		if ok, msg := p.leftCondition(left); !ok {
 			if parser.mode == ReplMode {
-				return IllegalExpression{}
+				return ast.IllegalExpression{}
 			} else if parser.mode == CompilerMode {
 				panic(msg)
 			}
 		}
 	}
 	right := parser.parseExpression(precedence)
-	if _, ok := right.(IllegalExpression); ok {
+	if _, ok := right.(ast.IllegalExpression); ok {
 		if parser.mode == ReplMode {
-			return IllegalExpression{}
+			return ast.IllegalExpression{}
 		} else if parser.mode == CompilerMode {
 			panic(fmt.Sprintf("The condition on the right side of the binary operator %s is illegal", token.Literal))
 		}
@@ -54,15 +40,15 @@ func (p *BinaryOperatorParselet) parse(parser *Parser, left Expression, token to
 	if p.rightCondition != nil {
 		if ok, msg := p.rightCondition(right); !ok {
 			if parser.mode == ReplMode {
-				return IllegalExpression{}
+				return ast.IllegalExpression{}
 			} else if parser.mode == CompilerMode {
 				panic(msg)
 			}
 		}
 	}
-	return OperatorExpression{
+	return ast.OperatorExpression{
 		Type: token.Type,
-		Arguments: operatorExpressionArguments{
+		Arguments: ast.OperatorExpressionArguments{
 			Left:  left,
 			Right: right,
 		},
