@@ -17,3 +17,8 @@ type LetExpression struct {
 func (e LetExpression) String() string {
 	return fmt.Sprintf("LET(%s = %s)", e.Identifier, e.Binding)
 }
+
+// Visit this AST Node
+func (e LetExpression) Visit(env Environment) Value {
+	return NoneValue()
+}

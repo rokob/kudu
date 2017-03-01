@@ -44,8 +44,11 @@ func (p *KuduParser) Parse(input string) (bool, bool, []ast.Expression) {
 			isBreak = illegalExp.IsBreak
 			return !isIllegal, isBreak, parsedExpressions
 		}
-		if !p.parser.match(token.SEMICOLON) {
+		if p.Mode == ReplMode && !p.parser.match(token.SEMICOLON) {
 			return true, false, parsedExpressions
+		}
+		if p.Mode == CompilerMode && p.parser.match(token.SEMICOLON) {
+			continue
 		}
 		if p.parser.match(token.EOF) {
 			return !isIllegal, isBreak, parsedExpressions

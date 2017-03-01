@@ -20,3 +20,7 @@ func (e IdentifierExpression) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.Identifier)
 }
 
+// Visit this AST Node
+func (e IdentifierExpression) Visit(env Environment) Value {
+	return NoneValue()
+}

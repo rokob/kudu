@@ -20,3 +20,8 @@ func (e ConditionalExpression) String() string {
 	}
 	return expressionListJoin(e.Block, ";")
 }
+
+// Visit this AST Node
+func (e ConditionalExpression) Visit(env Environment) Value {
+	return NoneValue()
+}

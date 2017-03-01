@@ -18,3 +18,8 @@ func (e IntegerExpression) String() string {
 func (e IntegerExpression) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.Integer)
 }
+
+// Visit this AST Node
+func (e IntegerExpression) Visit(env Environment) Value {
+	return Value{Type: "int", Data: e.Integer}
+}

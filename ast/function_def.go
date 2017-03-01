@@ -17,3 +17,8 @@ type FunctionDefinitionExpression struct {
 func (e FunctionDefinitionExpression) String() string {
 	return fmt.Sprintf("FUN((%s);(%s))", expressionListJoin(e.Arguments, ","), expressionListJoin(e.Block, ";"))
 }
+
+// Visit this AST Node
+func (e FunctionDefinitionExpression) Visit(env Environment) Value {
+	return NoneValue()
+}

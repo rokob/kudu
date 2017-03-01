@@ -8,3 +8,8 @@ type IllegalExpression struct {
 func (e IllegalExpression) String() string {
 	return "ILLEGAL"
 }
+
+// Visit this AST Node
+func (e IllegalExpression) Visit(env Environment) Value {
+	return NoneValue()
+}

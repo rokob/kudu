@@ -13,3 +13,7 @@ func (e ReturnExpression) String() string {
 	return fmt.Sprintf("RETURN(%s)", e.Value)
 }
 
+// Visit this AST Node
+func (e ReturnExpression) Visit(env Environment) Value {
+	return NoneValue()
+}
