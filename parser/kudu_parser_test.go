@@ -31,7 +31,7 @@ func TestKuduParser_Parse(t *testing.T) {
 			"a + b * 3",
 			"BINARY(+, IDENT(a), BINARY(*, IDENT(b), INT(3)))"},
 		{"Grouping",
-			"(a + b) * 3)",
+			"(a + b) * 3",
 			"BINARY(*, BINARY(+, IDENT(a), IDENT(b)), INT(3))"},
 		{"Let binding",
 			"let a = 4*b",
